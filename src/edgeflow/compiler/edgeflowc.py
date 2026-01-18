@@ -23,14 +23,14 @@ import sys
 
 try:
     from edgeflow.parser import parse_edgeflow_file as _parse_edgeflow_file
-    from edgeflow.parser import parse_edgeflow_file as parse_ef
 except ImportError:
     try:
-        from parser import parse_edgeflow_file as _parse_edgeflow_file
-        from parser import parse_edgeflow_file as parse_ef
+        from parser import parse_edgeflow_file as _parse_edgeflow_file  # type: ignore
     except ImportError:
-        _parse_edgeflow_file = None
-        parse_ef = None
+        _parse_edgeflow_file = None  # type: ignore[assignment]
+
+# Alias for backward compatibility
+parse_ef = _parse_edgeflow_file
 
 from typing import Any
 from typing import Dict as DictType
@@ -721,15 +721,24 @@ def main() -> int:
                 for warning in fast_result.warnings:
                     print(formatter.warning(f"  - {warning}", with_icon=False))
 
-            # Print estimated impact
-            impact = fast_result.estimated_impact
-            impact_stats = {
-                "Size Reduction": f"{impact.get('estimated_size_reduction_percent', 0):.1f}%",
-                "Speed Improvement": f"{impact.get('estimated_speed_improvement_factor', 1.0):.1f}x",
-                "Memory Reduction": f"{impact.get('estimated_memory_reduction_percent', 0):.1f}%",
-                "Confidence": f"{impact.get('optimization_confidence', 0.8)*100:.0f}%",
-            }
-            print(formatter.format_stats(impact_stats, "Estimated Optimization Impact"))
+            # Print performance metrics
+            impact_stats = {}
+            if fast_result.performance_metrics:
+                pm = fast_result.performance_metrics
+                impact_stats = {
+                    "Model Size": f"{pm.model_size_mb:.1f} MB",
+                    "Inference Time": f"{pm.inference_time_ms:.1f} ms",
+                    "Memory Usage": f"{pm.memory_usage_mb:.1f} MB",
+                    "Power Draw": f"{pm.power_consumption_mw:.1f} mW",
+                }
+            else:
+                impact_stats = {
+                    "Model Size": "N/A",
+                    "Inference Time": "N/A",
+                    "Memory Usage": "N/A",
+                    "Power Draw": "N/A",
+                }
+            print(formatter.format_stats(impact_stats, "Performance Metrics"))
 
             return 0
 
@@ -943,12 +952,21 @@ def main() -> int:
                     from edgeflow.ir.unified_ir import UIRGraph
 
                     model_path = cfg.get("model") or cfg.get("model_path")
-                    uir_graph = parse_model_to_uir(model_path)
-                    uir_graph = normalize_uir_graph(uir_graph, layout="NHWC")
-                    graph_for_codegen = uir_graph  # type: ignore[assignment]
-                    logging.info("Using Unified IR for backend code generation")
+                    if model_path:
+                        uir_graph = parse_model_to_uir(model_path)
+                        uir_graph = normalize_uir_graph(uir_graph, layout="NHWC")
+                        graph_for_codegen = uir_graph  # type: ignore[assignment]
+                        logging.info("Using Unified IR for backend code generation")
+                    else:
+                        from typing import cast
+
+                        graph_for_codegen = cast(
+                            Any, ir_graph
+                        )  # Fallback if no model path
                 except Exception as _:
-                    graph_for_codegen = ir_graph  # Fallback
+                    from typing import cast
+
+                    graph_for_codegen = cast(Any, ir_graph)  # Fallback
                     logging.info(
                         "Falling back to lightweight IR for backend code generation"
                     )
@@ -1009,9 +1027,9 @@ def main() -> int:
             args, "interactive_validation", False
         ):
             try:
-                validator = InteractiveValidator()
-                validation_result = validator.validate_file(args.config_path)
-                validator.display_results(validation_result, verbose=True)
+                validator_inter: InteractiveValidator = InteractiveValidator()  # type: ignore[no-redef]
+                validation_result = validator_inter.validate_file(args.config_path)
+                validator_inter.display_results(validation_result, verbose=True)
                 if not validation_result.success:
                     return 1
             except Exception as e:

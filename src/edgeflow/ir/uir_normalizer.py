@@ -132,7 +132,7 @@ class UIRNormalizer(UIRTransformation):
             shape = TensorShape(dims)
 
         # Ensure no zero/negative except -1 for dynamic
-        safe_dims = []
+        safe_dims: list[int | str] = []
         for d in shape.dimensions:
             if isinstance(d, int) and d == 0:
                 safe_dims.append(1)

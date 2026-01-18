@@ -102,14 +102,16 @@ class ShapeCompatibilityValidator(UIRValidator):
 
         # Get input and output tensors for this node
         input_tensors = [
-            graph.tensors.get(tensor_name)
+            tensor
             for tensor_name in node.inputs
             if tensor_name in graph.tensors
+            and (tensor := graph.tensors.get(tensor_name)) is not None
         ]
         output_tensors = [
-            graph.tensors.get(tensor_name)
+            tensor
             for tensor_name in node.outputs
             if tensor_name in graph.tensors
+            and (tensor := graph.tensors.get(tensor_name)) is not None
         ]
 
         # Validate based on operation type
@@ -590,9 +592,10 @@ class DataTypeCompatibilityValidator(UIRValidator):
             ]:
                 # Element-wise operations require compatible data types
                 input_tensors = [
-                    graph.tensors.get(tensor_name)
+                    tensor
                     for tensor_name in node.inputs
                     if tensor_name in graph.tensors
+                    and (tensor := graph.tensors.get(tensor_name)) is not None
                 ]
 
                 if len(input_tensors) >= 2:
@@ -769,14 +772,16 @@ class PerformanceValidator(UIRValidator):
             if node.operation_type == OperationType.RESHAPE:
                 # Check if reshape is actually changing the shape
                 input_tensors = [
-                    graph.tensors.get(tensor_name)
+                    tensor
                     for tensor_name in node.inputs
                     if tensor_name in graph.tensors
+                    and (tensor := graph.tensors.get(tensor_name)) is not None
                 ]
                 output_tensors = [
-                    graph.tensors.get(tensor_name)
+                    tensor
                     for tensor_name in node.outputs
                     if tensor_name in graph.tensors
+                    and (tensor := graph.tensors.get(tensor_name)) is not None
                 ]
 
                 if input_tensors and output_tensors:

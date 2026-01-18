@@ -428,9 +428,9 @@ class InteractiveValidator:
         messages = []
 
         try:
-            from edgeflow.config.device_specs import get_device_specs
+            from edgeflow.config.dynamic_device_profiles import get_device_profile
 
-            device_specs = get_device_specs(target_device)
+            device_specs = get_device_profile(target_device)
 
             if not device_specs:
                 messages.append(
@@ -444,30 +444,38 @@ class InteractiveValidator:
                 return messages
 
             # Check memory constraints
-            max_memory_mb = device_specs.get("max_memory_mb", float("inf"))
-            if max_memory_mb < 100:  # Arbitrary threshold
-                messages.append(
-                    ValidationMessage(
-                        ValidationSeverity.WARNING,
-                        "LOW_MEMORY_DEVICE",
-                        f"Target device has limited memory: {max_memory_mb}MB",
-                        source_file=file_path,
-                        suggestion="Consider aggressive quantization and pruning",
+            memory_constraint = device_specs.get_constraint(
+                "total_memory_mb"
+            ) or device_specs.get_constraint("max_memory_mb")
+            if memory_constraint and isinstance(memory_constraint.value, (int, float)):
+                max_memory_mb = memory_constraint.value
+                if max_memory_mb < 100:  # Arbitrary threshold
+                    messages.append(
+                        ValidationMessage(
+                            ValidationSeverity.WARNING,
+                            "LOW_MEMORY_DEVICE",
+                            f"Target device has limited memory: {max_memory_mb}MB",
+                            source_file=file_path,
+                            suggestion="Consider aggressive quantization and pruning",
+                        )
                     )
-                )
 
             # Check compute constraints
-            max_ops_per_sec = device_specs.get("max_ops_per_sec", float("inf"))
-            if max_ops_per_sec < 1e9:  # 1 GOPS threshold
-                messages.append(
-                    ValidationMessage(
-                        ValidationSeverity.INFO,
-                        "LIMITED_COMPUTE",
-                        f"Target device has limited compute: {max_ops_per_sec/1e6:.0f} MOPS",
-                        source_file=file_path,
-                        suggestion="Consider model pruning and operator fusion",
+            compute_constraint = device_specs.get_constraint("max_ops_per_sec")
+            if compute_constraint and isinstance(
+                compute_constraint.value, (int, float)
+            ):
+                max_ops_per_sec = compute_constraint.value
+                if max_ops_per_sec < 1e9:  # 1 GOPS threshold
+                    messages.append(
+                        ValidationMessage(
+                            ValidationSeverity.INFO,
+                            "LIMITED_COMPUTE",
+                            f"Target device has limited compute: {max_ops_per_sec/1e6:.0f} MOPS",
+                            source_file=file_path,
+                            suggestion="Consider model pruning and operator fusion",
+                        )
                     )
-                )
 
         except Exception as e:
             messages.append(
