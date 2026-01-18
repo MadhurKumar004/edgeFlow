@@ -26,12 +26,12 @@ class TestFastCompilePath:
         mock_result.compile_time_ms = 150.5
         mock_result.errors = []
         mock_result.warnings = ["Warning 1", "Warning 2"]
-        mock_result.estimated_impact = {
-            "estimated_size_reduction_percent": 25.3,
-            "estimated_speed_improvement_factor": 1.5,
-            "estimated_memory_reduction_percent": 30.0,
-            "optimization_confidence": 0.85,
-        }
+        # Create mock performance_metrics
+        mock_result.performance_metrics = Mock()
+        mock_result.performance_metrics.model_size_mb = 5.2
+        mock_result.performance_metrics.inference_time_ms = 10.5
+        mock_result.performance_metrics.memory_usage_mb = 128.0
+        mock_result.performance_metrics.power_consumption_mw = 500.0
         mock_fast_compile.return_value = mock_result
 
         # Create args with fast_compile
@@ -52,7 +52,8 @@ class TestFastCompilePath:
 
         # Verify
         assert result == 0
-        mock_load.assert_called_once_with("test.ef")
+        # load_config now takes formatter parameter, so use assert_called_once()
+        mock_load.assert_called_once()
         mock_fast_compile.assert_called_once_with(mock_load.return_value)
 
     @patch("edgeflow.compiler.edgeflowc.parse_arguments")
@@ -71,7 +72,7 @@ class TestFastCompilePath:
         mock_result.errors = ["Error 1: Invalid model", "Error 2: Unsupported ops"]
         mock_result.warnings = []
         mock_result.compile_time_ms = 50.0
-        mock_result.estimated_impact = {}
+        mock_result.performance_metrics = None
         mock_fast_compile.return_value = mock_result
 
         # Create args with fast_compile
@@ -92,7 +93,7 @@ class TestFastCompilePath:
 
         # Verify failure
         assert result == 1
-        mock_load.assert_called_once_with("test.ef")
+        mock_load.assert_called_once()
         mock_fast_compile.assert_called_once_with(mock_load.return_value)
 
     @patch("edgeflow.compiler.edgeflowc.parse_arguments")
@@ -111,12 +112,11 @@ class TestFastCompilePath:
         mock_result.compile_time_ms = 200.0
         mock_result.errors = []
         mock_result.warnings = []  # No warnings
-        mock_result.estimated_impact = {
-            "estimated_size_reduction_percent": 10.0,
-            "estimated_speed_improvement_factor": 1.2,
-            "estimated_memory_reduction_percent": 15.0,
-            "optimization_confidence": 0.95,
-        }
+        mock_result.performance_metrics = Mock()
+        mock_result.performance_metrics.model_size_mb = 3.5
+        mock_result.performance_metrics.inference_time_ms = 8.0
+        mock_result.performance_metrics.memory_usage_mb = 64.0
+        mock_result.performance_metrics.power_consumption_mw = 300.0
         mock_fast_compile.return_value = mock_result
 
         # Create args with fast_compile
@@ -156,12 +156,11 @@ class TestFastCompilePath:
         mock_result.compile_time_ms = 100.0
         mock_result.errors = []
         mock_result.warnings = ["Performance warning"]
-        mock_result.estimated_impact = {
-            "estimated_size_reduction_percent": 20.0,
-            "estimated_speed_improvement_factor": 1.3,
-            "estimated_memory_reduction_percent": 25.0,
-            "optimization_confidence": 0.9,
-        }
+        mock_result.performance_metrics = Mock()
+        mock_result.performance_metrics.model_size_mb = 4.0
+        mock_result.performance_metrics.inference_time_ms = 9.2
+        mock_result.performance_metrics.memory_usage_mb = 96.0
+        mock_result.performance_metrics.power_consumption_mw = 400.0
         mock_fast_compile.return_value = mock_result
 
         # Create args with fast_compile and verbose

@@ -12,11 +12,14 @@ def _write_cfg(tmp_path, content):
 
 def test_cli_docker_flag(tmp_path, monkeypatch):
     """If --docker is passed, we should invoke DockerManager."""
+    # Mock validation functions
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.EdgeFlowValidator", lambda: type('obj', (object,), {'early_validation': lambda self, cfg: (True, [])})(  ))
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, []))
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_model_compatibility", lambda m, cfg: (True, []))
+    
     cfg = _write_cfg(tmp_path, 'model="m.tflite"\n')
 
-    # Mock docker_manager module
-    fake = ModuleType("docker_manager")
-
+    # Mock docker_manager module with correct path
     class FakeDM:
         def build_image(self, **kwargs):
             return True
@@ -31,9 +34,8 @@ def test_cli_docker_flag(tmp_path, monkeypatch):
             "docker_running": True,
         }
 
-    fake.DockerManager = lambda: FakeDM()  # type: ignore[attr-defined]
-    fake.validate_docker_setup = validate_docker_setup  # type: ignore[attr-defined]
-    monkeypatch.setitem(sys.modules, "docker_manager", fake)
+    monkeypatch.setattr("edgeflow.deployment.docker_manager.DockerManager", FakeDM)
+    monkeypatch.setattr("edgeflow.deployment.docker_manager.validate_docker_setup", validate_docker_setup)
 
     # Mock sys.argv
     monkeypatch.setattr(
@@ -46,9 +48,12 @@ def test_cli_docker_flag(tmp_path, monkeypatch):
 
 def test_cli_docker_run_failure(tmp_path, monkeypatch):
     """If docker run returns success False, exit with code 1."""
+    # Mock validation functions
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.EdgeFlowValidator", lambda: type('obj', (object,), {'early_validation': lambda self, cfg: (True, [])})(  ))
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, []))
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_model_compatibility", lambda m, cfg: (True, []))
+    
     cfg = _write_cfg(tmp_path, 'model="m.tflite"\n')
-
-    fake = ModuleType("docker_manager")
 
     class FakeDM:
         def build_image(self, **kwargs):
@@ -64,9 +69,8 @@ def test_cli_docker_run_failure(tmp_path, monkeypatch):
             "docker_running": True,
         }
 
-    fake.DockerManager = lambda: FakeDM()  # type: ignore[attr-defined]
-    fake.validate_docker_setup = validate_docker_setup  # type: ignore[attr-defined]
-    monkeypatch.setitem(sys.modules, "docker_manager", fake)
+    monkeypatch.setattr("edgeflow.deployment.docker_manager.DockerManager", FakeDM)
+    monkeypatch.setattr("edgeflow.deployment.docker_manager.validate_docker_setup", validate_docker_setup)
 
     monkeypatch.setattr(
         sys, "argv", ["edgeflowc.py", cfg, "--docker"]
@@ -77,11 +81,14 @@ def test_cli_docker_run_failure(tmp_path, monkeypatch):
 
 def test_cli_docker_build_and_run(tmp_path, monkeypatch):
     """Happy-path: docker build (optional) and run succeed -> exit 0."""
+    # Mock validation functions
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.EdgeFlowValidator", lambda: type('obj', (object,), {'early_validation': lambda self, cfg: (True, [])})(  ))
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, []))
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_model_compatibility", lambda m, cfg: (True, []))
+    
     cfg = _write_cfg(tmp_path, 'model="m.tflite"\n')
 
     # Fake docker_manager module
-    fake = ModuleType("docker_manager")
-
     class FakeDM:
         def build_image(self, **kwargs):
             return True
@@ -96,9 +103,8 @@ def test_cli_docker_build_and_run(tmp_path, monkeypatch):
             "docker_running": True,
         }
 
-    fake.DockerManager = lambda: FakeDM()  # type: ignore[attr-defined]
-    fake.validate_docker_setup = validate_docker_setup  # type: ignore[attr-defined]
-    monkeypatch.setitem(sys.modules, "docker_manager", fake)
+    monkeypatch.setattr("edgeflow.deployment.docker_manager.DockerManager", FakeDM)
+    monkeypatch.setattr("edgeflow.deployment.docker_manager.validate_docker_setup", validate_docker_setup)
 
     monkeypatch.setattr(
         sys,

@@ -116,6 +116,11 @@ class TestParserIntegration:
 
     def test_parser_with_cli(self, tmp_path: Path, monkeypatch):
         """Test parser integration via CLI load path (no subprocess)."""
+        # Mock validation functions
+        monkeypatch.setattr("edgeflow.compiler.edgeflowc.EdgeFlowValidator", lambda: type('obj', (object,), {'early_validation': lambda self, cfg: (True, [])})(  ))
+        monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, []))
+        monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_model_compatibility", lambda m, cfg: (True, []))
+
         p = tmp_path / "c.ef"
         p.write_text('model = "x.tflite"\nquantize = int8\n', encoding="utf-8")
 

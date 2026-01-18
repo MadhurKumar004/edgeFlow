@@ -6,15 +6,15 @@ from edgeflow.compiler import edgeflowc
 
 
 class TestExplainAndCheckOnly:
-    @patch("edgeflowc.parse_args")
-    @patch("edgeflowc.explain_report")
-    @patch("edgeflowc.optimize_model")
-    @patch("edgeflowc.codegen_tflite")
-    @patch("edgeflowc.apply_ir_optimizations")
-    @patch("edgeflowc.IRBuilder")
-    @patch("edgeflowc.create_program_from_dict")
-    @patch("edgeflowc.load_config")
-    @patch("edgeflowc.validate_file_path")
+    @patch("edgeflow.compiler.edgeflowc.parse_arguments")
+    @patch("edgeflow.compiler.edgeflowc.generate_explainability_report")
+    @patch("edgeflow.compiler.edgeflowc.optimize_model")
+    @patch("edgeflow.compiler.edgeflowc.generate_code")
+    @patch("edgeflow.compiler.edgeflowc.apply_ir_transformations")
+    @patch("edgeflow.compiler.edgeflowc.IRBuilder")
+    @patch("edgeflow.compiler.edgeflowc.create_program_from_dict")
+    @patch("edgeflow.compiler.edgeflowc.load_config")
+    @patch("edgeflow.compiler.edgeflowc.validate_file_path")
     def test_explain_after_optimization(
         self,
         mock_validate,
@@ -68,10 +68,10 @@ class TestExplainAndCheckOnly:
         assert args[1] == {"passes_applied": 5}
         assert args[2] == {"size_reduction": 0.5}
 
-    @patch("edgeflowc.parse_args")
-    @patch("edgeflowc.initial_check")
-    @patch("edgeflowc.load_config")
-    @patch("edgeflowc.validate_file_path")
+    @patch("edgeflow.compiler.edgeflowc.parse_arguments")
+    @patch("edgeflow.analysis.initial_check.perform_initial_check")
+    @patch("edgeflow.compiler.edgeflowc.load_config")
+    @patch("edgeflow.compiler.edgeflowc.validate_file_path")
     def test_check_only_flag(
         self, mock_validate, mock_load, mock_initial_check, mock_parse_args
     ):

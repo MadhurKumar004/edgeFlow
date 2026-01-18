@@ -36,7 +36,6 @@ frontend/.venv_test/
 *.ef
 test_*.ef
 sample.ef
-tests/
 
 # Allow example configuration files
 !example_*.ef

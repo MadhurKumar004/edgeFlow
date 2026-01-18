@@ -20,6 +20,10 @@ quantize = int8
 """
             f.write(content)
             config_path = f.name
+            
+            # Create dummy model file
+            with open("test.tflite", "wb") as mf:
+                mf.write(b"dummy tflite content")
 
         try:
             result = subprocess.run(
@@ -31,6 +35,7 @@ quantize = int8
             assert "model" in result.stdout
         finally:
             Path(config_path).unlink(missing_ok=True)
+            Path("test.tflite").unlink(missing_ok=True)
 
     @pytest.mark.skipif(
         os.environ.get("RUN_API_INTEGRATION", "0") != "1",

@@ -110,6 +110,8 @@ class TestFallbackParser:
 
     def test_fallback_parser_syntax_error_detection(self):
         """Test that fallback parser detects syntax errors."""
+        from edgeflow.parser import EdgeFlowParserError, parse_edgeflow_string
+
         # Test multiple equals signs
         with pytest.raises(EdgeFlowParserError, match="syntax error"):
             parse_edgeflow_string("key === value")
@@ -156,6 +158,8 @@ class TestEdgeFlowParserError:
 
     def test_parser_error_raised_on_invalid_syntax(self):
         """Test EdgeFlowParserError is raised for invalid syntax."""
+        from edgeflow.parser import EdgeFlowParserError, parse_edgeflow_string
+
         with pytest.raises(EdgeFlowParserError) as exc_info:
             parse_edgeflow_string("invalid === syntax")
         assert "syntax error" in str(exc_info.value).lower()

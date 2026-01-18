@@ -57,7 +57,12 @@ def test_validate_file_path_uppercase_extension(tmp_path):
     assert edgeflowc.validate_file_path(str(p)) is True
 
 
-def test_load_config_fallback_reads_file(tmp_path):
+def test_load_config_fallback_reads_file(tmp_path, monkeypatch):
+    # Mock the validation functions to prevent SystemExit
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.EdgeFlowValidator", lambda: type('obj', (object,), {'early_validation': lambda self, cfg: (True, [])})(  ))
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, []))
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_model_compatibility", lambda m, cfg: (True, []))
+    
     p = tmp_path / "model.ef"
     content = 'model="m.tflite"\n'
     p.write_text(content, encoding="utf-8")
@@ -67,6 +72,11 @@ def test_load_config_fallback_reads_file(tmp_path):
 
 
 def test_load_config_uses_parser_if_available(tmp_path, monkeypatch):
+    # Mock the validation functions
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.EdgeFlowValidator", lambda: type('obj', (object,), {'early_validation': lambda self, cfg: (True, [])})(  ))
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, []))
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_model_compatibility", lambda m, cfg: (True, []))
+    
     # Inject a fake parser module
     fake = ModuleType("parser")
 
@@ -85,30 +95,37 @@ def test_load_config_uses_parser_if_available(tmp_path, monkeypatch):
 
 def test_optimize_model_uses_optimizer_if_available(monkeypatch):
     called = {"ok": False}
-    fake = ModuleType("optimizer")
-
-    def optimize(cfg):  # pragma: no cover (covered via call below)
+    
+    def fake_optimize(cfg):
         called["ok"] = True
-
-    fake.optimize = optimize  # type: ignore[attr-defined]
-    monkeypatch.setitem(sys.modules, "optimizer", fake)
-
-    edgeflowc.optimize_model({"k": 1})
+        return "optimized.tflite", {"improvement": 25}
+    
+    def fake_benchmark(model_path, cfg):
+        return {"latency": 10, "size": 100}
+    
+    def fake_compare(orig, opt, cfg):
+        return {"improvements": {"size_reduction_percent": 25}, "optimized": {}}
+    
+    monkeypatch.setattr("edgeflow.optimization.optimizer.optimize", fake_optimize)
+    monkeypatch.setattr("edgeflow.benchmarking.benchmarker.benchmark_model", fake_benchmark)
+    monkeypatch.setattr("edgeflow.benchmarking.benchmarker.compare_models", fake_compare)
+    
+    result = edgeflowc.optimize_model({"model": "/tmp/test.tflite"})
     assert called["ok"] is True
+    assert "optimization" in result
 
 
 def test_optimize_model_handles_exception(monkeypatch, caplog):
-    # Provide an optimizer that raises an exception to hit the except path
-    fake = ModuleType("optimizer")
-
-    def optimize(cfg):  # pragma: no cover - asserted via logging
+    # Mock optimize to raise an exception
+    def fake_optimize(cfg):
         raise RuntimeError("boom")
-
-    fake.optimize = optimize  # type: ignore[attr-defined]
-    monkeypatch.setitem(sys.modules, "optimizer", fake)
-
+    
+    monkeypatch.setattr("edgeflow.optimization.optimizer.optimize", fake_optimize)
+    monkeypatch.setattr("edgeflow.benchmarking.benchmarker.benchmark_model", lambda m, c: {})
+    
     caplog.set_level("INFO")
-    edgeflowc.optimize_model({})
+    result = edgeflowc.optimize_model({"model": "/tmp/test.tflite"})
+    assert "error" in result
     assert any("Optimization pipeline failed" in r.message for r in caplog.records)
 
 
@@ -130,13 +147,18 @@ def test_main_invalid_extension_returns_1(tmp_path, monkeypatch):
 
 
 def test_main_success_calls_optimize(tmp_path, monkeypatch):
+    # Mock validation functions
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.EdgeFlowValidator", lambda: type('obj', (object,), {' early_validation': lambda self, cfg: (True, [])})(  ))
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, []))
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_model_compatibility", lambda m, cfg: (True, []))
+    
     p = tmp_path / "ok.ef"
     p.write_text(
         'model="test.tflite"\nquantize="int8"\nmemory_limit=1\nx=1', encoding="utf-8"
     )
     called = {"n": 0}
 
-    def fake_opt(config):
+    def fake_opt(config, formatter=None):
         called["n"] += 1
         return {
             "optimization": {},
@@ -153,6 +175,11 @@ def test_main_success_calls_optimize(tmp_path, monkeypatch):
 
 
 def test_main_verbose_emits_debug_log(tmp_path, monkeypatch, caplog):
+    # Mock validation functions
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.EdgeFlowValidator", lambda: type('obj', (object,), {'early_validation': lambda self, cfg: (True, [])})(  ))
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, []))
+    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_model_compatibility", lambda m, cfg: (True, []))
+    
     p = tmp_path / "ok.ef"
     p.write_text(
         'model="test.tflite"\nquantize="int8"\nmemory_limit=1\nx=1', encoding="utf-8"
@@ -160,7 +187,7 @@ def test_main_verbose_emits_debug_log(tmp_path, monkeypatch, caplog):
     monkeypatch.setattr(
         edgeflowc,
         "optimize_model",
-        lambda cfg: {
+        lambda cfg, formatter=None: {
             "optimization": {},
             "original_benchmark": {},
             "optimized_benchmark": {},
