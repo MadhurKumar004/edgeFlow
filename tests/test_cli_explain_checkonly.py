@@ -14,10 +14,12 @@ class TestExplainAndCheckOnly:
     @patch("edgeflow.compiler.edgeflowc.IRBuilder")
     @patch("edgeflow.compiler.edgeflowc.create_program_from_dict")
     @patch("edgeflow.compiler.edgeflowc.load_config")
+    @patch("edgeflow.analysis.initial_check.perform_initial_check")
     @patch("edgeflow.compiler.edgeflowc.validate_file_path")
     def test_explain_after_optimization(
         self,
         mock_validate,
+        mock_initial_check,
         mock_load,
         mock_create_program,
         mock_ir_builder,
@@ -30,6 +32,10 @@ class TestExplainAndCheckOnly:
         """Test --explain flag triggers explanation after optimization."""
         # Setup mocks
         mock_validate.return_value = True
+        mock_initial_check.return_value = (
+            True,
+            Mock(issues=[], recommendations=[], estimated_fit_score=90.0),
+        )
         mock_load.return_value = {"model": "test.tflite", "target_device": "cpu"}
         mock_program = Mock()
         mock_program.statements = [Mock(), Mock()]
@@ -42,7 +48,11 @@ class TestExplainAndCheckOnly:
 
         mock_apply_ir.return_value = {"passes_applied": 5}
         mock_codegen.return_value = True
-        mock_optimize.return_value = ("optimized.tflite", {"size_reduction": 0.5})
+        mock_optimize.return_value = {
+            "optimization": {"size_reduction": 0.5},
+            "comparison": {},
+        }
+        mock_explain_report.return_value = "report content"
 
         # Create args with explain=True
         mock_args = argparse.Namespace(
@@ -54,6 +64,7 @@ class TestExplainAndCheckOnly:
             fast_compile=False,
             explain=True,
             device_spec_file=None,
+            codegen=None,
         )
         mock_parse_args.return_value = mock_args
 
@@ -64,9 +75,13 @@ class TestExplainAndCheckOnly:
         assert result == 0
         mock_explain_report.assert_called_once()
         args, kwargs = mock_explain_report.call_args
-        assert args[0] == mock_ir_graph
-        assert args[1] == {"passes_applied": 5}
-        assert args[2] == {"size_reduction": 0.5}
+        assert args[0] == {
+            "model": "test.tflite",
+            "target_device": "cpu",
+            "simulate_as_real": False,
+        }
+        assert args[1] == {"size_reduction": 0.5}
+        assert args[2] == {"passes_applied": 5}
 
     @patch("edgeflow.compiler.edgeflowc.parse_arguments")
     @patch("edgeflow.analysis.initial_check.perform_initial_check")

@@ -4,7 +4,11 @@ from pathlib import Path
 
 import pytest
 from edgeflow.config.device_specs import DeviceSpecManager
-from edgeflow.analysis.initial_check import CompatibilityReport, InitialChecker, ModelProfile
+from edgeflow.analysis.initial_check import (
+    CompatibilityReport,
+    InitialChecker,
+    ModelProfile,
+)
 
 
 class TestInitialCheck:

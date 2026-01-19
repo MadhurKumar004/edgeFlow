@@ -10,24 +10,36 @@ class TestEndToEndIntegration:
     """End-to-end integration tests (CLI and optional API)."""
 
     def test_cli_parser_integration(self):
-        import os, sys; print(f"DEBUG: PYTHONPATH: {os.environ.get('PYTHONPATH')}"); print(f"DEBUG: sys.path: {sys.path}")
-        import sys; print(f"DEBUG: sys.executable: {sys.executable}")
+        import os, sys
+
+        print(f"DEBUG: PYTHONPATH: {os.environ.get('PYTHONPATH')}")
+        print(f"DEBUG: sys.path: {sys.path}")
+        import sys
+
+        print(f"DEBUG: sys.executable: {sys.executable}")
         """Test CLI with parser end-to-end using --dry-run."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".ef", delete=False) as f:
-            content = """
-model = "test.tflite"
+            # Create dummy model file
+            with open("test.tflite", "wb") as mf:
+                mf.write(b"dummy tflite content")
+            model_abs_path = os.path.abspath("test.tflite")
+
+            content = f"""
+model = "{model_abs_path}"
 quantize = int8
 """
             f.write(content)
             config_path = f.name
-            
-            # Create dummy model file
-            with open("test.tflite", "wb") as mf:
-                mf.write(b"dummy tflite content")
 
         try:
             result = subprocess.run(
-                [sys.executable, "-m", "edgeflow.compiler.edgeflowc", config_path,  "--check-only"],
+                [
+                    sys.executable,
+                    "-m",
+                    "edgeflow.compiler.edgeflowc",
+                    config_path,
+                    "--check-only",
+                ],
                 capture_output=True,
                 text=True,
             )

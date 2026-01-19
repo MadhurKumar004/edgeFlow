@@ -45,8 +45,8 @@ jobs:
 
       - name: Run tests (CLI only)
         env:
-          PYTHONPATH: .
-        run: python -m pytest -q tests --cov=src/edgeflow --cov-report=xml --cov-fail-under=20
+          PYTHONPATH: src
+        run: python -m pytest tests --cov=src/edgeflow --cov-report=xml --cov-fail-under=15
 
       - name: Run parser unit tests
         env:

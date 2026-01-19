@@ -375,8 +375,8 @@ def load_config(
         # Comprehensive semantic validation
         # Prefer parser-level validation semantics (test-friendly) if available
         try:
-            from parser import (
-                validate_config as _parser_validate_config,  # type: ignore
+            from edgeflow.parser import (
+                validate_config as _parser_validate_config,
             )
         except Exception:  # noqa: BLE001
             _parser_validate_config = None  # type: ignore
@@ -1051,6 +1051,7 @@ def main() -> int:
         # Argparse uses SystemExit for --help/--version and parse errors.
         # Propagate code to the caller.
         return int(e.code) if e.code is not None else 0
+    except Exception as exc:
         logging.exception("Unexpected error: %s", exc)
         return 1
 

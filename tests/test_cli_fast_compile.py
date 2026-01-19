@@ -1,4 +1,5 @@
 import pytest
+
 """Tests for --fast-compile CLI path in edgeflowc."""
 
 import argparse
@@ -190,7 +191,9 @@ class TestFastCompilePath:
     @patch("edgeflow.compiler.edgeflowc.parse_arguments")
     @patch("edgeflow.compiler.edgeflowc.fast_compile_config")
     @patch("edgeflow.compiler.edgeflowc.load_config")
-    @pytest.mark.skip(reason="Function _load_config_fallback does not exist in edgeflowc")
+    @pytest.mark.skip(
+        reason="Function _load_config_fallback does not exist in edgeflowc"
+    )
     @patch("edgeflow.compiler.edgeflowc.validate_file_path")
     def test_fast_compile_with_parser_fallback(
         self, mock_validate, mock_load, mock_fast_compile, mock_parse_args
@@ -229,7 +232,9 @@ class TestFastCompilePath:
         mock_validate.return_value = True
 
         # Run main with fallback
-        with patch("edgeflow.compiler.edgeflowc._load_config_fallback") as mock_fallback:
+        with patch(
+            "edgeflow.compiler.edgeflowc._load_config_fallback"
+        ) as mock_fallback:
             mock_fallback.return_value = {"model": "test.tflite", "fallback": True}
             result = edgeflowc.main()
 

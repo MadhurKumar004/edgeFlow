@@ -1,6 +1,8 @@
+import argparse
 import sys
 from types import ModuleType
 from typing import Dict
+from unittest.mock import patch
 
 from edgeflow.compiler import edgeflowc
 import pytest
@@ -59,10 +61,20 @@ def test_validate_file_path_uppercase_extension(tmp_path):
 
 def test_load_config_fallback_reads_file(tmp_path, monkeypatch):
     # Mock the validation functions to prevent SystemExit
-    monkeypatch.setattr("edgeflow.compiler.edgeflowc.EdgeFlowValidator", lambda: type('obj', (object,), {'early_validation': lambda self, cfg: (True, [])})(  ))
-    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, []))
-    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_model_compatibility", lambda m, cfg: (True, []))
-    
+    monkeypatch.setattr(
+        "edgeflow.compiler.edgeflowc.EdgeFlowValidator",
+        lambda: type(
+            "obj", (object,), {"early_validation": lambda self, cfg: (True, [])}
+        )(),
+    )
+    monkeypatch.setattr(
+        "edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, [])
+    )
+    monkeypatch.setattr(
+        "edgeflow.compiler.edgeflowc.validate_model_compatibility",
+        lambda m, cfg: (True, []),
+    )
+
     p = tmp_path / "model.ef"
     content = 'model="m.tflite"\n'
     p.write_text(content, encoding="utf-8")
@@ -73,10 +85,20 @@ def test_load_config_fallback_reads_file(tmp_path, monkeypatch):
 
 def test_load_config_uses_parser_if_available(tmp_path, monkeypatch):
     # Mock the validation functions
-    monkeypatch.setattr("edgeflow.compiler.edgeflowc.EdgeFlowValidator", lambda: type('obj', (object,), {'early_validation': lambda self, cfg: (True, [])})(  ))
-    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, []))
-    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_model_compatibility", lambda m, cfg: (True, []))
-    
+    monkeypatch.setattr(
+        "edgeflow.compiler.edgeflowc.EdgeFlowValidator",
+        lambda: type(
+            "obj", (object,), {"early_validation": lambda self, cfg: (True, [])}
+        )(),
+    )
+    monkeypatch.setattr(
+        "edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, [])
+    )
+    monkeypatch.setattr(
+        "edgeflow.compiler.edgeflowc.validate_model_compatibility",
+        lambda m, cfg: (True, []),
+    )
+
     # Inject a fake parser module
     fake = ModuleType("parser")
 
@@ -95,21 +117,25 @@ def test_load_config_uses_parser_if_available(tmp_path, monkeypatch):
 
 def test_optimize_model_uses_optimizer_if_available(monkeypatch):
     called = {"ok": False}
-    
+
     def fake_optimize(cfg):
         called["ok"] = True
         return "optimized.tflite", {"improvement": 25}
-    
+
     def fake_benchmark(model_path, cfg):
         return {"latency": 10, "size": 100}
-    
+
     def fake_compare(orig, opt, cfg):
         return {"improvements": {"size_reduction_percent": 25}, "optimized": {}}
-    
+
     monkeypatch.setattr("edgeflow.optimization.optimizer.optimize", fake_optimize)
-    monkeypatch.setattr("edgeflow.benchmarking.benchmarker.benchmark_model", fake_benchmark)
-    monkeypatch.setattr("edgeflow.benchmarking.benchmarker.compare_models", fake_compare)
-    
+    monkeypatch.setattr(
+        "edgeflow.benchmarking.benchmarker.benchmark_model", fake_benchmark
+    )
+    monkeypatch.setattr(
+        "edgeflow.benchmarking.benchmarker.compare_models", fake_compare
+    )
+
     result = edgeflowc.optimize_model({"model": "/tmp/test.tflite"})
     assert called["ok"] is True
     assert "optimization" in result
@@ -119,10 +145,12 @@ def test_optimize_model_handles_exception(monkeypatch, caplog):
     # Mock optimize to raise an exception
     def fake_optimize(cfg):
         raise RuntimeError("boom")
-    
+
     monkeypatch.setattr("edgeflow.optimization.optimizer.optimize", fake_optimize)
-    monkeypatch.setattr("edgeflow.benchmarking.benchmarker.benchmark_model", lambda m, c: {})
-    
+    monkeypatch.setattr(
+        "edgeflow.benchmarking.benchmarker.benchmark_model", lambda m, c: {}
+    )
+
     caplog.set_level("INFO")
     result = edgeflowc.optimize_model({"model": "/tmp/test.tflite"})
     assert "error" in result
@@ -148,13 +176,23 @@ def test_main_invalid_extension_returns_1(tmp_path, monkeypatch):
 
 def test_main_success_calls_optimize(tmp_path, monkeypatch):
     # Mock validation functions
-    monkeypatch.setattr("edgeflow.compiler.edgeflowc.EdgeFlowValidator", lambda: type('obj', (object,), {' early_validation': lambda self, cfg: (True, [])})(  ))
-    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, []))
-    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_model_compatibility", lambda m, cfg: (True, []))
-    
+    monkeypatch.setattr(
+        "edgeflow.compiler.edgeflowc.EdgeFlowValidator",
+        lambda: type(
+            "obj", (object,), {" early_validation": lambda self, cfg: (True, [])}
+        )(),
+    )
+    monkeypatch.setattr(
+        "edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, [])
+    )
+    monkeypatch.setattr(
+        "edgeflow.compiler.edgeflowc.validate_model_compatibility",
+        lambda m, cfg: (True, []),
+    )
+
     p = tmp_path / "ok.ef"
     p.write_text(
-        'model="test.tflite"\nquantize="int8"\nmemory_limit=1\nx=1', encoding="utf-8"
+        'model="test.tflite"\nquantize="int8"\nmemory_limit=1', encoding="utf-8"
     )
     called = {"n": 0}
 
@@ -168,21 +206,53 @@ def test_main_success_calls_optimize(tmp_path, monkeypatch):
         }
 
     monkeypatch.setattr(edgeflowc, "optimize_model", fake_opt)
+
+    monkeypatch.setattr(
+        edgeflowc,
+        "parse_arguments",
+        lambda: argparse.Namespace(
+            config_path=str(p),
+            verbose=False,
+            docker=False,
+            skip_check=True,
+            check_only=False,
+            codegen=None,
+            explain=False,
+            device_spec_file=None,
+        ),
+    )
+
     _set_argv([str(p), "--skip-check"])
-    code = edgeflowc.main()
+    with patch("edgeflow.parser.validate_config", return_value=(True, [])):
+        code = edgeflowc.main()
     assert code == 0
     assert called["n"] == 1
 
 
 def test_main_verbose_emits_debug_log(tmp_path, monkeypatch, caplog):
     # Mock validation functions
-    monkeypatch.setattr("edgeflow.compiler.edgeflowc.EdgeFlowValidator", lambda: type('obj', (object,), {'early_validation': lambda self, cfg: (True, [])})(  ))
-    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, []))
-    monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_model_compatibility", lambda m, cfg: (True, []))
-    
+    monkeypatch.setattr(
+        "edgeflow.compiler.edgeflowc.EdgeFlowValidator",
+        lambda: type(
+            "obj", (object,), {"early_validation": lambda self, cfg: (True, [])}
+        )(),
+    )
+    monkeypatch.setattr(
+        "edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, [])
+    )
+    monkeypatch.setattr(
+        "edgeflow.compiler.edgeflowc.validate_model_compatibility",
+        lambda m, cfg: (True, []),
+    )
+    import os
+
+    monkeypatch.setattr(
+        "shutil.get_terminal_size", lambda fallback=None: os.terminal_size((80, 24))
+    )
+
     p = tmp_path / "ok.ef"
     p.write_text(
-        'model="test.tflite"\nquantize="int8"\nmemory_limit=1\nx=1', encoding="utf-8"
+        'model="test.tflite"\nquantize="int8"\nmemory_limit=1', encoding="utf-8"
     )
     monkeypatch.setattr(
         edgeflowc,
@@ -196,8 +266,25 @@ def test_main_verbose_emits_debug_log(tmp_path, monkeypatch, caplog):
     )
 
     caplog.set_level("DEBUG")
+
+    monkeypatch.setattr(
+        edgeflowc,
+        "parse_arguments",
+        lambda: argparse.Namespace(
+            config_path=str(p),
+            verbose=True,
+            docker=False,
+            skip_check=True,
+            check_only=False,
+            codegen=None,
+            explain=False,
+            device_spec_file=None,
+        ),
+    )
+
     _set_argv([str(p), "--verbose", "--skip-check"])
-    code = edgeflowc.main()
+    with patch("edgeflow.parser.validate_config", return_value=(True, [])):
+        code = edgeflowc.main()
     assert code == 0
     # confirm debug log emitted by load step
     assert any("Loaded config" in r.message for r in caplog.records)

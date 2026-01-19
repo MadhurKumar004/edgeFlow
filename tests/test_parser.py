@@ -117,12 +117,25 @@ class TestParserIntegration:
     def test_parser_with_cli(self, tmp_path: Path, monkeypatch):
         """Test parser integration via CLI load path (no subprocess)."""
         # Mock validation functions
-        monkeypatch.setattr("edgeflow.compiler.edgeflowc.EdgeFlowValidator", lambda: type('obj', (object,), {'early_validation': lambda self, cfg: (True, [])})(  ))
-        monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_edgeflow_config", lambda cfg: (True, []))
-        monkeypatch.setattr("edgeflow.compiler.edgeflowc.validate_model_compatibility", lambda m, cfg: (True, []))
+        monkeypatch.setattr(
+            "edgeflow.compiler.edgeflowc.EdgeFlowValidator",
+            lambda: type(
+                "obj", (object,), {"early_validation": lambda self, cfg: (True, [])}
+            )(),
+        )
+        monkeypatch.setattr(
+            "edgeflow.compiler.edgeflowc.validate_edgeflow_config",
+            lambda cfg: (True, []),
+        )
+        monkeypatch.setattr(
+            "edgeflow.compiler.edgeflowc.validate_model_compatibility",
+            lambda m, cfg: (True, []),
+        )
 
         p = tmp_path / "c.ef"
-        p.write_text('model = "x.tflite"\nquantize = int8\n', encoding="utf-8")
+        model_path = tmp_path / "x.tflite"
+        model_path.write_bytes(b"dummy")
+        p.write_text(f'model = "{model_path}"\nquantize = int8\n', encoding="utf-8")
 
         # Use CLI's load_config directly to avoid dependency on optimizer
         import importlib
@@ -131,5 +144,5 @@ class TestParserIntegration:
 
         importlib.reload(edgeflowc)
         cfg = edgeflowc.load_config(str(p))
-        assert cfg["model"] == "x.tflite"
+        assert cfg["model"] == str(model_path)
         assert cfg["quantize"] == "int8"
