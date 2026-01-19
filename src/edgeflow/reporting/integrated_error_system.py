@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from traceability_system import ProvenanceTracker, ValidationSeverity
+from edgeflow.reporting.traceability_system import ProvenanceTracker, ValidationSeverity
 
 logger = logging.getLogger(__name__)
 

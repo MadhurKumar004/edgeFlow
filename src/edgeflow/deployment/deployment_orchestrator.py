@@ -13,8 +13,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from dynamic_device_profiles import get_device_profile
-from traceability_system import (
+from edgeflow.config.dynamic_device_profiles import get_device_profile
+from edgeflow.reporting.traceability_system import (
     ProvenanceTracker,
     TransformationType,
     trace_transformation,
