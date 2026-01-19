@@ -205,6 +205,12 @@ def test_main_success_calls_optimize(tmp_path, monkeypatch):
             "comparison": {},
         }
 
+    class MockValidator:
+        def early_validation(self, config):
+            return True, []
+
+    monkeypatch.setattr(edgeflowc, "EdgeFlowValidator", MockValidator)
+
     monkeypatch.setattr(edgeflowc, "optimize_model", fake_opt)
 
     monkeypatch.setattr(
@@ -264,6 +270,12 @@ def test_main_verbose_emits_debug_log(tmp_path, monkeypatch, caplog):
             "comparison": {},
         },
     )
+
+    class MockValidator:
+        def early_validation(self, config):
+            return True, []
+
+    monkeypatch.setattr(edgeflowc, "EdgeFlowValidator", MockValidator)
 
     caplog.set_level("DEBUG")
 
