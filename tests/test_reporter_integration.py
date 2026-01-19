@@ -10,13 +10,11 @@ class TestReporterIntegration:
         """Test reporter integration with CLI."""
         # Create test EdgeFlow config
         with tempfile.NamedTemporaryFile(mode="w", suffix=".ef", delete=False) as f:
-            f.write(
-                """
+            f.write("""
             model_path = "test_models/sample.tflite"
             output_path = "test_models/sample_optimized.tflite"
             quantize = int8
-            """
-            )
+            """)
             config_path = f.name
 
         try:
