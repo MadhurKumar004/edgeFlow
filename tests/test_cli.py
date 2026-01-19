@@ -192,7 +192,7 @@ def test_main_success_calls_optimize(tmp_path, monkeypatch):
 
     p = tmp_path / "ok.ef"
     p.write_text(
-        'model="test.tflite"\nquantize="int8"\nmemory_limit=1', encoding="utf-8"
+        'model="test.tflite"\nquantize="int8"\nmemory_limit=16', encoding="utf-8"
     )
     called = {"n": 0}
 
@@ -258,7 +258,7 @@ def test_main_verbose_emits_debug_log(tmp_path, monkeypatch, caplog):
 
     p = tmp_path / "ok.ef"
     p.write_text(
-        'model="test.tflite"\nquantize="int8"\nmemory_limit=1', encoding="utf-8"
+        'model="test.tflite"\nquantize="int8"\nmemory_limit=16', encoding="utf-8"
     )
     monkeypatch.setattr(
         edgeflowc,
