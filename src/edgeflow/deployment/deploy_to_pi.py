@@ -80,7 +80,7 @@ def deploy_to_raspberry_pi(pi_ip, model_path, pi_user="pi"):
 import sys
 sys.path.append('/home/{pi_user}/edgeflow')
 
-from inference import EdgeFlowInference
+from inference import EdgeFlowInference  # type: ignore
 import numpy as np
 
 def test_model():

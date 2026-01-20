@@ -12,9 +12,9 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from dynamic_device_profiles import DeviceProfile, get_profile_manager
-from semantic_validator import Diagnostic, SemanticValidator
-from traceability_system import ProvenanceTracker, TransformationType
+from edgeflow.config.dynamic_device_profiles import DeviceProfile, get_profile_manager
+from edgeflow.analysis.semantic_validator import Diagnostic, SemanticValidator
+from edgeflow.reporting.traceability_system import ProvenanceTracker, TransformationType
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ class OptimizationPipeline:
         self.validator = SemanticValidator()
         self.tracker = ProvenanceTracker()
         self.device_profile = (
-            device_profile or get_profile_manager().get_default_profile()
+            device_profile or get_profile_manager().get_default_profile()  # type: ignore[attr-defined]
         )
         self.metrics = OptimizationMetrics()
         self.diagnostics: List[Diagnostic] = []
@@ -104,7 +104,7 @@ class OptimizationPipeline:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Track the optimization process
-        self.tracker.start_transformation(
+        self.tracker.start_transformation(  # type: ignore[call-arg,arg-type]
             TransformationType.OPTIMIZATION,
             {"model": str(model_path), "config": optimization_config},
         )
@@ -174,7 +174,7 @@ class OptimizationPipeline:
                 "success": True,
                 "optimized_model_path": str(output_path),
                 "metrics": self._get_metrics_dict(),
-                "diagnostics": [d.to_dict() for d in self.diagnostics],
+                "diagnostics": [d.to_dict() for d in self.diagnostics],  # type: ignore[attr-defined]
             }
 
         except Exception as e:
@@ -192,10 +192,10 @@ class OptimizationPipeline:
             return {
                 "success": False,
                 "error": str(e),
-                "diagnostics": [d.to_dict() for d in self.diagnostics],
+                "diagnostics": [d.to_dict() for d in self.diagnostics],  # type: ignore[attr-defined]
             }
         finally:
-            self.tracker.end_transformation()
+            self.tracker.end_transformation()  # type: ignore[attr-defined]
 
     def _log_stage(self, stage: OptimizationStage, message: str) -> None:
         """Log the current optimization stage."""

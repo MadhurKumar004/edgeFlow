@@ -612,6 +612,7 @@ class OptimizationOrchestrator:
         """Apply layout optimization."""
         with trace_transformation(
             TransformationType.OPTIMIZATION,
+            "layout_optimizer",
             "Memory layout optimization",
         ) as _:
             logger.info("🏗️ Applying layout optimization...")

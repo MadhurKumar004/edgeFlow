@@ -11,24 +11,29 @@ import io
 import json
 import logging
 from datetime import datetime, timezone
-from parser import parse_ef  # type: ignore
+from edgeflow.parser import parse_ef  # type: ignore
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 # Import core CLI logic
-import edgeflowc  # type: ignore
-from backend.api.services.parser_service import ParserService
-from code_generator import CodeGenerator
+import edgeflow.compiler.edgeflowc as edgeflowc  # type: ignore
+from edgeflow.backend.api.services.parser_service import ParserService
+from edgeflow.compiler.code_generator import CodeGenerator
 
 # Import EdgeFlow pipeline components
-from edgeflow_ast import create_program_from_dict
-from edgeflow_ir import FusionPass, IRBuilder, QuantizationPass, SchedulingPass
-from explainability_reporter import generate_explainability_report
-from fast_compile import fast_compile_config
+from edgeflow.ir.edgeflow_ast import create_program_from_dict
+from edgeflow.ir.edgeflow_ir import (
+    FusionPass,
+    IRBuilder,
+    QuantizationPass,
+    SchedulingPass,
+)
+from edgeflow.reporting.explainability_reporter import generate_explainability_report
+from edgeflow.optimization.fast_compile import fast_compile_config
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from initial_check import InitialChecker, perform_initial_check
+from edgeflow.analysis.initial_check import InitialChecker, perform_initial_check
 from pydantic import BaseModel, Field, constr
 from edgeflow.reporting.reporter import generate_json_report  # type: ignore
 
@@ -551,7 +556,11 @@ def fast_compile(
 
         return FastCompileResponse(
             success=True,
-            estimated_impact=result.estimated_impact,
+            estimated_impact=(
+                result.performance_metrics.to_dict()
+                if result.performance_metrics
+                else None
+            ),
             validation_results={"errors": result.errors, "warnings": result.warnings},
             message="Fast compile completed successfully",
             warnings=result.warnings,

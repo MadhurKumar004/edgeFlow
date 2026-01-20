@@ -270,7 +270,7 @@ class CodeGenerator(ASTVisitor):
                 "import numpy as np",
                 "import cv2",
                 "import time",
-                "from typing import Optional, Union, List, Tuple",
+                "from typing import Optional, Union, List, Tuple, Dict, Any",
             ]
         )
 
@@ -388,12 +388,10 @@ class CodeGenerator(ASTVisitor):
         )
         code += "            \n"
         code += '            print(f"Model loaded: {self.model_path}")\n'
-        code += (
-            "            print(f\"Input shape: {self.input_details[0]['shape']}\")\n"
-        )
-        code += (
-            "            print(f\"Output shape: {self.output_details[0]['shape']}\")\n"
-        )
+        code += "            if self.input_details:\n"
+        code += "                print(f\"Input shape: {self.input_details[0]['shape']}\")\n"
+        code += "            if self.output_details:\n"
+        code += "                print(f\"Output shape: {self.output_details[0]['shape']}\")\n"
 
         if quant_type != "none":
             code += f'            print(f"Quantization: {quant_type.upper()}")\n'

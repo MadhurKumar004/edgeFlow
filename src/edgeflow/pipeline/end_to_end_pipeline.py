@@ -195,7 +195,7 @@ class EdgeFlowPipeline:
                 return result
 
             # Parse configuration
-            from parser import parse_ef
+            from edgeflow.parser import parse_ef
 
             config = parse_ef(dsl_file)
 

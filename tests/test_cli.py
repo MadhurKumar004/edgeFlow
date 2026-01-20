@@ -128,7 +128,13 @@ def test_optimize_model_uses_optimizer_if_available(monkeypatch):
     def fake_compare(orig, opt, cfg):
         return {"improvements": {"size_reduction_percent": 25}, "optimized": {}}
 
-    monkeypatch.setattr("edgeflow.optimization.optimizer.optimize", fake_optimize)
+    # Mock the optimizer module completely to avoid importing TF
+    fake_optimizer_module = ModuleType("edgeflow.optimization.optimizer")
+    fake_optimizer_module.optimize = fake_optimize
+    monkeypatch.setitem(
+        sys.modules, "edgeflow.optimization.optimizer", fake_optimizer_module
+    )
+
     monkeypatch.setattr(
         "edgeflow.benchmarking.benchmarker.benchmark_model", fake_benchmark
     )
@@ -146,7 +152,12 @@ def test_optimize_model_handles_exception(monkeypatch, caplog):
     def fake_optimize(cfg):
         raise RuntimeError("boom")
 
-    monkeypatch.setattr("edgeflow.optimization.optimizer.optimize", fake_optimize)
+    # Mock the optimizer module completely
+    fake_optimizer_module = ModuleType("edgeflow.optimization.optimizer")
+    fake_optimizer_module.optimize = fake_optimize
+    monkeypatch.setitem(
+        sys.modules, "edgeflow.optimization.optimizer", fake_optimizer_module
+    )
     monkeypatch.setattr(
         "edgeflow.benchmarking.benchmarker.benchmark_model", lambda m, c: {}
     )

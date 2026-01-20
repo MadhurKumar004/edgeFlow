@@ -25,7 +25,7 @@ try:
     from edgeflow.parser import parse_edgeflow_file as _parse_edgeflow_file
 except ImportError:
     try:
-        from parser import parse_edgeflow_file as _parse_edgeflow_file  # type: ignore
+        from edgeflow.parser import parse_edgeflow_file as _parse_edgeflow_file  # type: ignore
     except ImportError:
         _parse_edgeflow_file = None  # type: ignore[assignment]
 

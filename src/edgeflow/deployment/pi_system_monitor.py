@@ -448,7 +448,7 @@ def monitor_inference_with_model(model_path: str, num_inferences: int = 100):
     # Import inference engine
     try:
         sys.path.append("/home/pi/edgeflow")
-        from inference import EdgeFlowInference
+        from inference import EdgeFlowInference  # type: ignore
     except ImportError:
         print("❌ EdgeFlow inference engine not found")
         print("   Make sure you've deployed the model first")
@@ -464,6 +464,8 @@ def monitor_inference_with_model(model_path: str, num_inferences: int = 100):
         inference = EdgeFlowInference(model_path)
 
         # Get input shape for test data
+        if inference.input_details is None:
+            raise RuntimeError("Model input details not available")
         input_shape = inference.input_details[0]["shape"]
         input_dtype = inference.input_details[0]["dtype"]
 

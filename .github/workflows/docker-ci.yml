@@ -51,9 +51,15 @@ jobs:
           curl -f http://localhost:8000/api/health || exit 1
           curl -f http://localhost:3000 || exit 1
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - name: Run Docker tests
         run: |
           pip install pytest docker
+          export PYTHONPATH=$PYTHONPATH:$(pwd)/src
           pytest tests/test_docker.py -v -m docker
 
       - name: Security scan with Trivy
@@ -64,7 +70,7 @@ jobs:
           output: "trivy-results.sarif"
 
       - name: Upload scan results
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: "trivy-results.sarif"
 

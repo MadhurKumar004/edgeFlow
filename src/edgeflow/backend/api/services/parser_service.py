@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from parser import EdgeFlowParserError, parse_edgeflow_string, validate_config
+from edgeflow.parser import EdgeFlowParserError, parse_edgeflow_string, validate_config
 from typing import Any, Dict, Tuple
 
-from edgeflow_ast import create_program_from_dict
-from edgeflow_ir import create_ir_from_config
-from error_reporter import EdgeFlowErrorReporter
-from static_validator import validate_edgeflow_config_static
+from edgeflow.ir.edgeflow_ast import create_program_from_dict
+from edgeflow.ir.edgeflow_ir import create_ir_from_config
+from edgeflow.reporting.error_reporter import EdgeFlowErrorReporter
+from edgeflow.analysis.static_validator import validate_edgeflow_config_static
 
 
 class ParserService:

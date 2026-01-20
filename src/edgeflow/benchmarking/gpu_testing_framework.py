@@ -13,12 +13,20 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from gpu import AccelerationType, GPUAccelerationManager, GPUInfo
-from gpu_optimization_integration import (
+# TODO: GPU module not yet implemented - this file is a placeholder
+# from edgeflow.deployment.gpu import AccelerationType, GPUAccelerationManager, GPUInfo
+from edgeflow.optimization.gpu_optimization_integration import (
     GPUOptimizationIntegrator,
     GPUOptimizationStrategy,
+    # Placeholder classes defined in gpu_optimization_integration
+    AccelerationType,
+    GPUAccelerationManager,
+    GPUInfo,
 )
-from traceability_system import TransformationType, trace_transformation
+from edgeflow.reporting.traceability_system import (
+    TransformationType,
+    trace_transformation,
+)
 
 logger = logging.getLogger(__name__)
 

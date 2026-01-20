@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from static_validator import EdgeFlowStaticValidator, ValidationResult
+from edgeflow.analysis.static_validator import EdgeFlowStaticValidator, ValidationResult
 
 logger = logging.getLogger(__name__)
 

@@ -284,7 +284,7 @@ CMD ["python", "inference.py", "--model", "model.tflite", "--port", "8080"]
 
 def deploy_from_dsl(dsl_file: str) -> Dict[DeploymentTarget, DeploymentResult]:
     """Deploy model to all targets specified in DSL file."""
-    from parser import parse_ef
+    from edgeflow.parser import parse_ef
 
     config = parse_ef(dsl_file)
     model_path = config.get("model", "model.tflite")

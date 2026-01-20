@@ -16,7 +16,11 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from static_validator import ValidationCategory, ValidationIssue, ValidationSeverity
+from edgeflow.analysis.static_validator import (
+    ValidationCategory,
+    ValidationIssue,
+    ValidationSeverity,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -680,7 +684,11 @@ def generate_summary_report(
 
 if __name__ == "__main__":
     # Test the error reporter
-    from static_validator import ValidationCategory, ValidationIssue, ValidationSeverity
+    from edgeflow.analysis.static_validator import (
+        ValidationCategory,
+        ValidationIssue,
+        ValidationSeverity,
+    )
 
     test_issues = [
         ValidationIssue(

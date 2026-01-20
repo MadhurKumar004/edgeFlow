@@ -144,6 +144,9 @@ Thumbs.db
 *.pyd
 *.dll
 
+# CI script
+check-ci-locally.sh
+
 # Distribution / packaging
 .Python
 build/
