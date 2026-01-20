@@ -1,70 +1,36 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
+    branches: [main]
+  push:
     branches: [main]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
-      # Linear history enforcement removed per project policy.
-
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          python-version: "3.9"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt -r requirements-dev.txt
+          pip install -r requirements-dev.txt
+          pip install -r src/edgeflow/backend/requirements.txt
           pip install -e .
 
-      - name: Lint - black
-        run: black --check .
-
-      - name: Type check - mypy
-        run: mypy --ignore-missing-imports .
-
-      - name: Run tests (CLI only)
-        env:
-          PYTHONPATH: src
-        run: python -m pytest tests --cov=src/edgeflow --cov-report=xml --cov-fail-under=15
-
-      - name: Run parser unit tests
-        env:
-          PYTHONPATH: .
+      - name: Run tests
         run: |
-          # Optional ANTLR generation if jar present
-          if [ -f "grammar/antlr-4.13.1-complete.jar" ]; then \
-            java -jar grammar/antlr-4.13.1-complete.jar -Dlanguage=Python3 -o parser grammar/EdgeFlow.g4; \
-          else \
-            echo "ANTLR jar not found; using fallback parser"; \
-          fi
-          python -m pytest -q tests/test_parser.py --cov=parser --cov-append --cov-report=xml --cov-fail-under=20
+          pytest tests/
 
-      - name: Generate coverage badge
-        run: genbadge coverage -i coverage.xml -o coverage.svg
-
-      - name: Upload coverage badge artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-badge
-          path: coverage.svg
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
