@@ -13,7 +13,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from traceability_system import (
+from edgeflow.reporting.traceability_system import (
     ProvenanceTracker,
     TransformationType,
     register_artifact,

@@ -626,7 +626,7 @@ class EdgeFlowConfigSuggester:
 
 
 def suggest_configuration_improvements(
-    config: Dict[str, Any]
+    config: Dict[str, Any],
 ) -> List[ConfigurationSuggestion]:
     """Suggest improvements for a configuration.
 

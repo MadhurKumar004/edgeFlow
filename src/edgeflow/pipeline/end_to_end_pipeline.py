@@ -11,20 +11,26 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from deployment_orchestrator import (
+from edgeflow.deployment.deployment_orchestrator import (
     CrossPlatformDeployer,
     DeploymentConfig,
     DeploymentTarget,
 )
-from dynamic_device_profiles import get_device_profile, get_profile_manager
-from integrated_error_system import ValidationSeverity, get_error_reporter
-from interactive_validator import InteractiveValidator
-from optimization_orchestrator import (
+from edgeflow.config.dynamic_device_profiles import (
+    get_device_profile,
+    get_profile_manager,
+)
+from edgeflow.reporting.integrated_error_system import (
+    ValidationSeverity,
+    get_error_reporter,
+)
+from edgeflow.analysis.interactive_validator import InteractiveValidator
+from edgeflow.optimization.optimization_orchestrator import (
     OptimizationLevel,
     OptimizationOrchestrator,
     OptimizationStrategy,
 )
-from traceability_system import (
+from edgeflow.reporting.traceability_system import (
     ProvenanceTracker,
     TransformationType,
     export_session_report,
